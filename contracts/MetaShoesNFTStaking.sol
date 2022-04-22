@@ -3,26 +3,26 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./DigitalaxAccessControls.sol";
-import "./DigitalaxGenesisNFT.sol";
+import "./MetaShoesAccessControls.sol";
+import "./MetaShoesGenesisNFT.sol";
 import "./interfaces/IERC20.sol";
-import "./interfaces/IDigitalaxRewards.sol";
-import "./interfaces/IDigitalaxNFT.sol";
+import "./interfaces/IMetaShoesRewards.sol";
+import "./interfaces/IMetaShoesNFT.sol";
 
 /**
- * @title Digitalax Staking
+ * @title MetaShoes Staking
  * @dev Stake NFTs, earn tokens on the Digitialax platform
  * @author Adrian Guerrera (deepyr)
  */
 
-contract DigitalaxNFTStaking {
+contract MetaShoesNFTStaking {
     using SafeMath for uint256;
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
     IERC20 public rewardsToken;
-    IDigitalaxNFT public parentNFT;
-    DigitalaxAccessControls public accessControls;
-    IDigitalaxRewards public rewardsContract;
+    IMetaShoesNFT public parentNFT;
+    MetaShoesAccessControls public accessControls;
+    IMetaShoesRewards public rewardsContract;
 
 
     /// @notice total ethereum staked currently in the gensesis staking contract
@@ -86,8 +86,8 @@ contract DigitalaxNFTStaking {
      */
     function initStaking(
         IERC20 _rewardsToken,
-        IDigitalaxNFT _parentNFT,
-        DigitalaxAccessControls _accessControls
+        IMetaShoesNFT _parentNFT,
+        MetaShoesAccessControls _accessControls
     )
         external
     {
@@ -108,11 +108,11 @@ contract DigitalaxNFTStaking {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxParentStaking.setRewardsContract: Sender must be admin"
+            "MetaShoesParentStaking.setRewardsContract: Sender must be admin"
         );
         require(_addr != address(0));
         address oldAddr = address(rewardsContract);
-        rewardsContract = IDigitalaxRewards(_addr);
+        rewardsContract = IMetaShoesRewards(_addr);
         emit RewardsTokenUpdated(oldAddr, _addr);
     }
 
@@ -124,7 +124,7 @@ contract DigitalaxNFTStaking {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxParentStaking.setTokensClaimable: Sender must be admin"
+            "MetaShoesParentStaking.setTokensClaimable: Sender must be admin"
         );
         tokensClaimable = _enabled;
         emit ClaimableStatusUpdated(_enabled);
@@ -225,7 +225,7 @@ contract DigitalaxNFTStaking {
     {
         require(
             tokenOwner[_tokenId] == msg.sender,
-            "DigitalaxParentStaking._unstake: Sender must have staked tokenID"
+            "MetaShoesParentStaking._unstake: Sender must have staked tokenID"
         );
         claimReward(msg.sender);
         _unstake(msg.sender, _tokenId);
@@ -293,7 +293,7 @@ contract DigitalaxNFTStaking {
     function emergencyUnstake(uint256 _tokenId) public {
         require(
             tokenOwner[_tokenId] == msg.sender,
-            "DigitalaxParentStaking._unstake: Sender must have staked tokenID"
+            "MetaShoesParentStaking._unstake: Sender must have staked tokenID"
         );
         _unstake(msg.sender, _tokenId);
         emit EmergencyUnstake(msg.sender, _tokenId);

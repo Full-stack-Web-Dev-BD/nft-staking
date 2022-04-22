@@ -2,17 +2,17 @@
 
 pragma solidity 0.6.12;
 
-import "../DigitalaxAuction.sol";
+import "../MetaShoesAuction.sol";
 
-contract DigitalaxAuctionMock is DigitalaxAuction {
+contract MetaShoesAuctionMock is MetaShoesAuction {
     uint256 public nowOverride;
 
     constructor(
-        DigitalaxAccessControls _accessControls,
-        IDigitalaxGarmentNFT _garmentNft,
+        MetaShoesAccessControls _accessControls,
+        IMetaShoesGarmentNFT _garmentNft,
         address payable _platformReserveAddress
     )
-    DigitalaxAuction(_accessControls, _garmentNft, _platformReserveAddress)
+    MetaShoesAuction(_accessControls, _garmentNft, _platformReserveAddress)
     public {}
 
     function setNowOverride(uint256 _now) external {

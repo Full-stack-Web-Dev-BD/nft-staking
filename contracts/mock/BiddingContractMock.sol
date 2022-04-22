@@ -2,12 +2,12 @@
 
 pragma solidity 0.6.12;
 
-import "../DigitalaxAuction.sol";
+import "../MetaShoesAuction.sol";
 
 contract BiddingContractMock {
-    DigitalaxAuction public auctionContract;
+    MetaShoesAuction public auctionContract;
 
-    constructor(DigitalaxAuction _auctionContract) public {
+    constructor(MetaShoesAuction _auctionContract) public {
         auctionContract = _auctionContract;
     }
 

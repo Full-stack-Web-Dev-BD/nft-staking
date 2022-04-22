@@ -3,21 +3,21 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./DigitalaxAccessControls.sol";
+import "./MetaShoesAccessControls.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "./Utils/UniswapV2Library.sol";
 import "./interfaces/IWETH9.sol";
 import "./interfaces/IUniswapV2Pair.sol";
-import "./interfaces/IDigitalaxRewards.sol";
+import "./interfaces/IMetaShoesRewards.sol";
 
 /**
- * @title Digitalax Staking
+ * @title MetaShoes Staking
  * @dev Stake MONA LP tokens, earn MONA on the Digitialax platform
  * @author Adrian Guerrera (deepyr)
  */
 
 
-contract DigitalaxLPStaking  {
+contract MetaShoesLPStaking  {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -25,8 +25,8 @@ contract DigitalaxLPStaking  {
     address public lpToken; // Pool tokens for MONA/WETH pair
     IWETH public WETH;
 
-    DigitalaxAccessControls public accessControls;
-    IDigitalaxRewards public rewardsContract;
+    MetaShoesAccessControls public accessControls;
+    IMetaShoesRewards public rewardsContract;
 
     uint256 public stakedLPTotal;
     uint256 public lastUpdateTime;
@@ -84,7 +84,7 @@ contract DigitalaxLPStaking  {
         IERC20 _rewardsToken,
         address _lpToken,
         IWETH _WETH,
-        DigitalaxAccessControls _accessControls
+        MetaShoesAccessControls _accessControls
     )
         public
     {
@@ -114,7 +114,7 @@ contract DigitalaxLPStaking  {
 
         require(
             endBal > startBal ,
-            "DigitalaxLPStaking.zapEth: Zap amount must be greater than 0"
+            "MetaShoesLPStaking.zapEth: Zap amount must be greater than 0"
         );
         uint256 amount = endBal.sub(startBal);
 
@@ -137,11 +137,11 @@ contract DigitalaxLPStaking  {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxLPStaking.setRewardsContract: Sender must be admin"
+            "MetaShoesLPStaking.setRewardsContract: Sender must be admin"
         );
         require(_addr != address(0));
         address oldAddr = address(rewardsContract);
-        rewardsContract = IDigitalaxRewards(_addr);
+        rewardsContract = IMetaShoesRewards(_addr);
         emit RewardsTokenUpdated(oldAddr, _addr);
     }
 
@@ -153,7 +153,7 @@ contract DigitalaxLPStaking  {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxLPStaking.setLpToken: Sender must be admin"
+            "MetaShoesLPStaking.setLpToken: Sender must be admin"
         );
         require(_addr != address(0));
         address oldAddr = lpToken;
@@ -169,7 +169,7 @@ contract DigitalaxLPStaking  {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxLPStaking.setTokensClaimable: Sender must be admin"
+            "MetaShoesLPStaking.setTokensClaimable: Sender must be admin"
         );
         tokensClaimable = _enabled;
         emit ClaimableStatusUpdated(_enabled);
@@ -229,7 +229,7 @@ contract DigitalaxLPStaking  {
     {
         require(
             _amount > 0 ,
-            "DigitalaxLPStaking._stake: Staked amount must be greater than 0"
+            "MetaShoesLPStaking._stake: Staked amount must be greater than 0"
         );
         Staker storage staker = stakers[_user];
 
@@ -271,7 +271,7 @@ contract DigitalaxLPStaking  {
 
         require(
             stakers[_user].balance >= _amount,
-            "DigitalaxLPStaking._unstake: Sender must have staked tokens"
+            "MetaShoesLPStaking._unstake: Sender must have staked tokens"
         );
         claimReward(_user);
         Staker storage staker = stakers[_user];

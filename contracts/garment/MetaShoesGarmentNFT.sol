@@ -6,20 +6,20 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155Receiver.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "../ERC1155/ERC1155.sol";
-import "../DigitalaxAccessControls.sol";
+import "../MetaShoesAccessControls.sol";
 import "../ERC998/IERC998ERC1155TopDown.sol";
 
 /**
- * @title Digitalax Garment NFT a.k.a. parent NFTs
+ * @title MetaShoes Garment NFT a.k.a. parent NFTs
  * @dev Issues ERC-721 tokens as well as being able to hold child 1155 tokens
  */
-contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, IERC998ERC1155TopDown {
+contract MetaShoesGarmentNFT is ERC721("MetaShoesNFT", "DTX"), ERC1155Receiver, IERC998ERC1155TopDown {
 
     // @notice event emitted upon construction of this contract, used to bootstrap external indexers
-    event DigitalaxGarmentNFTContractDeployed();
+    event MetaShoesGarmentNFTContractDeployed();
 
     // @notice event emitted when token URI is updated
-    event DigitalaxGarmentTokenUriUpdate(
+    event MetaShoesGarmentTokenUriUpdate(
         uint256 indexed _tokenId,
         string _tokenUri
     );
@@ -31,7 +31,7 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
     );
 
     /// @dev Required to govern who can call certain functions
-    DigitalaxAccessControls public accessControls;
+    MetaShoesAccessControls public accessControls;
 
     /// @dev Child ERC1155 contract address
     ERC1155 public childContract;
@@ -58,17 +58,17 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
     uint256 public maxChildrenPerToken = 10;
 
     /**
-     @param _accessControls Address of the Digitalax access control contract
-     @param _childContract ERC1155 the Digitalax child NFT contract
+     @param _accessControls Address of the MetaShoes access control contract
+     @param _childContract ERC1155 the MetaShoes child NFT contract
      */
-    constructor(DigitalaxAccessControls _accessControls, ERC1155 _childContract) public {
+    constructor(MetaShoesAccessControls _accessControls, ERC1155 _childContract) public {
         accessControls = _accessControls;
         childContract = _childContract;
-        emit DigitalaxGarmentNFTContractDeployed();
+        emit MetaShoesGarmentNFTContractDeployed();
     }
 
     /**
-     @notice Mints a DigitalaxGarmentNFT AND when minting to a contract checks if the beneficiary is a 721 compatible
+     @notice Mints a MetaShoesGarmentNFT AND when minting to a contract checks if the beneficiary is a 721 compatible
      @dev Only senders with either the minter or smart contract role can invoke this method
      @param _beneficiary Recipient of the NFT
      @param _tokenUri URI for the token being minted
@@ -78,7 +78,7 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
     function mint(address _beneficiary, string calldata _tokenUri, address _designer) external returns (uint256) {
         require(
             accessControls.hasSmartContractRole(_msgSender()) || accessControls.hasMinterRole(_msgSender()),
-            "DigitalaxGarmentNFT.mint: Sender must have the minter or contract role"
+            "MetaShoesGarmentNFT.mint: Sender must have the minter or contract role"
         );
 
         // Valid args
@@ -98,7 +98,7 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
     }
 
     /**
-     @notice Burns a DigitalaxGarmentNFT, releasing any composed 1155 tokens held by the token itseld
+     @notice Burns a MetaShoesGarmentNFT, releasing any composed 1155 tokens held by the token itseld
      @dev Only the owner or an approved sender can call this method
      @param _tokenId the token ID to burn
      */
@@ -106,7 +106,7 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
         address operator = _msgSender();
         require(
             ownerOf(_tokenId) == operator || isApproved(_tokenId, operator),
-            "DigitalaxGarmentNFT.burn: Only garment owner or approved"
+            "MetaShoesGarmentNFT.burn: Only garment owner or approved"
         );
 
         // If there are any children tokens then send them as part of the burn
@@ -185,7 +185,7 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
     function _validateReceiverParams(uint256 _receiverTokenId, address _operator, address _from) internal view {
         require(_exists(_receiverTokenId), "Token does not exist");
 
-        // We only accept children from the Digitalax child contract
+        // We only accept children from the MetaShoes child contract
         require(_msgSender() == address(childContract), "Invalid child token contract");
 
         // check the sender is the owner of the token or its just been birthed to this token
@@ -213,10 +213,10 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
     function setTokenURI(uint256 _tokenId, string calldata _tokenUri) external {
         require(
             accessControls.hasSmartContractRole(_msgSender()) || accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxGarmentNFT.setTokenURI: Sender must be an authorised contract or admin"
+            "MetaShoesGarmentNFT.setTokenURI: Sender must be an authorised contract or admin"
         );
         _setTokenURI(_tokenId, _tokenUri);
-        emit DigitalaxGarmentTokenUriUpdate(_tokenId, _tokenUri);
+        emit MetaShoesGarmentTokenUriUpdate(_tokenId, _tokenUri);
     }
 
     /**
@@ -228,10 +228,10 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
     function setPrimarySalePrice(uint256 _tokenId, uint256 _salePrice) external {
         require(
             accessControls.hasSmartContractRole(_msgSender()) || accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxGarmentNFT.setPrimarySalePrice: Sender must be an authorised contract or admin"
+            "MetaShoesGarmentNFT.setPrimarySalePrice: Sender must be an authorised contract or admin"
         );
-        require(_exists(_tokenId), "DigitalaxGarmentNFT.setPrimarySalePrice: Token does not exist");
-        require(_salePrice > 0, "DigitalaxGarmentNFT.setPrimarySalePrice: Invalid sale price");
+        require(_exists(_tokenId), "MetaShoesGarmentNFT.setPrimarySalePrice: Token does not exist");
+        require(_salePrice > 0, "MetaShoesGarmentNFT.setPrimarySalePrice: Invalid sale price");
 
         // Only set it once
         if (primarySalePrice[_tokenId] == 0) {
@@ -245,8 +245,8 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
      @dev Only admin
      @param _accessControls Address of the new access controls contract
      */
-    function updateAccessControls(DigitalaxAccessControls _accessControls) external {
-        require(accessControls.hasAdminRole(_msgSender()), "DigitalaxGarmentNFT.updateAccessControls: Sender must be admin");
+    function updateAccessControls(MetaShoesAccessControls _accessControls) external {
+        require(accessControls.hasAdminRole(_msgSender()), "MetaShoesGarmentNFT.updateAccessControls: Sender must be admin");
         accessControls = _accessControls;
     }
 
@@ -256,7 +256,7 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
      @param _maxChildrenPerToken uint256 the max children a token can hold
      */
     function updateMaxChildrenPerToken(uint256 _maxChildrenPerToken) external {
-        require(accessControls.hasAdminRole(_msgSender()), "DigitalaxGarmentNFT.updateMaxChildrenPerToken: Sender must be admin");
+        require(accessControls.hasAdminRole(_msgSender()), "MetaShoesGarmentNFT.updateMaxChildrenPerToken: Sender must be admin");
         maxChildrenPerToken = _maxChildrenPerToken;
     }
 
@@ -377,7 +377,7 @@ contract DigitalaxGarmentNFT is ERC721("DigitalaxNFT", "DTX"), ERC1155Receiver, 
      @param _designer Address supplied on minting
      */
     function _assertMintingParamsValid(string calldata _tokenUri, address _designer) pure internal {
-        require(bytes(_tokenUri).length > 0, "DigitalaxGarmentNFT._assertMintingParamsValid: Token URI is empty");
-        require(_designer != address(0), "DigitalaxGarmentNFT._assertMintingParamsValid: Designer is zero address");
+        require(bytes(_tokenUri).length > 0, "MetaShoesGarmentNFT._assertMintingParamsValid: Token URI is empty");
+        require(_designer != address(0), "MetaShoesGarmentNFT._assertMintingParamsValid: Designer is zero address");
     }
 }

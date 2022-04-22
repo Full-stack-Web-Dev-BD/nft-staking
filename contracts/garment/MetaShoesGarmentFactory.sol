@@ -4,16 +4,16 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/GSN/Context.sol";
-import "./DigitalaxGarmentNFT.sol";
-import "./DigitalaxMaterials.sol";
-import "../DigitalaxAccessControls.sol";
+import "./MetaShoesGarmentNFT.sol";
+import "./MetaShoesMaterials.sol";
+import "../MetaShoesAccessControls.sol";
 
 /**
- * @title Digitalax Garment Factory
+ * @title MetaShoes Garment Factory
  * @dev To facilitate the creation of child and parents NFTs
  * @dev This contract needs to be given the smart contract role in order to be given access to mint tokens
  */
-contract DigitalaxGarmentFactory is Context {
+contract MetaShoesGarmentFactory is Context {
 
     // @notice event emitted on garment creation
     event GarmentCreated(
@@ -21,18 +21,18 @@ contract DigitalaxGarmentFactory is Context {
     );
 
     // @notice the parent ERC721 garment token
-    DigitalaxGarmentNFT public garmentToken;
+    MetaShoesGarmentNFT public garmentToken;
 
     // @notice the child ERC1155 strand tokens
-    DigitalaxMaterials public materials;
+    MetaShoesMaterials public materials;
 
     // @notice access controls
-    DigitalaxAccessControls public accessControls;
+    MetaShoesAccessControls public accessControls;
 
     constructor(
-        DigitalaxGarmentNFT _garmentToken,
-        DigitalaxMaterials _materials,
-        DigitalaxAccessControls _accessControls
+        MetaShoesGarmentNFT _garmentToken,
+        MetaShoesMaterials _materials,
+        MetaShoesAccessControls _accessControls
     ) public {
         garmentToken = _garmentToken;
         materials = _materials;
@@ -47,7 +47,7 @@ contract DigitalaxGarmentFactory is Context {
     function createNewChild(string calldata _uri) external returns (uint256 childTokenId) {
         require(
             accessControls.hasMinterRole(_msgSender()),
-            "DigitalaxGarmentFactory.createNewChild: Sender must be minter"
+            "MetaShoesGarmentFactory.createNewChild: Sender must be minter"
         );
         return materials.createChild(_uri);
     }
@@ -60,7 +60,7 @@ contract DigitalaxGarmentFactory is Context {
     function createNewChildren(string[] calldata _uris) external returns (uint256[] memory childTokenIds) {
         require(
             accessControls.hasMinterRole(_msgSender()),
-            "DigitalaxGarmentFactory.createNewChildren: Sender must be minter"
+            "MetaShoesGarmentFactory.createNewChildren: Sender must be minter"
         );
         return materials.batchCreateChildren(_uris);
     }
@@ -78,7 +78,7 @@ contract DigitalaxGarmentFactory is Context {
     ) external {
         require(
             accessControls.hasMinterRole(_msgSender()),
-            "DigitalaxGarmentFactory.mintParentWithChildren: Sender must be minter"
+            "MetaShoesGarmentFactory.mintParentWithChildren: Sender must be minter"
         );
         // Generate parent 721 token
         uint256 garmentTokenId = garmentToken.mint(beneficiary, garmentTokenUri, designer);
@@ -101,7 +101,7 @@ contract DigitalaxGarmentFactory is Context {
     ) external {
         require(
             accessControls.hasMinterRole(_msgSender()),
-            "DigitalaxGarmentFactory.mintParentWithoutChildren: Sender must be minter"
+            "MetaShoesGarmentFactory.mintParentWithoutChildren: Sender must be minter"
         );
 
         // Generate parent 721 token

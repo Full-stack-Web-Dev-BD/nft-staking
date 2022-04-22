@@ -3,10 +3,10 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
- * @notice Access Controls contract for the Digitalax Platform
+ * @notice Access Controls contract for the MetaShoes Platform
  * @author BlockRocket.tech
  */
-contract DigitalaxAccessControls is AccessControl {
+contract MetaShoesAccessControls is AccessControl {
     /// @notice Role definitions
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant SMART_CONTRACT_ROLE = keccak256("SMART_CONTRACT_ROLE");

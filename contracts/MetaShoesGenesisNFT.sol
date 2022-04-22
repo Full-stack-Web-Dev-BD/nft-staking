@@ -4,17 +4,17 @@ pragma solidity 0.6.12;
 
 import "./ERC721/ERC721WithSameTokenURIForAllTokens.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./DigitalaxAccessControls.sol";
+import "./MetaShoesAccessControls.sol";
 
 /**
- * @title Digitalax Genesis NFT
+ * @title MetaShoes Genesis NFT
  * @dev To facilitate the genesis sale for the Digitialax platform
  */
-contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGenesis", "DXG") {
+contract MetaShoesGenesisNFT is ERC721WithSameTokenURIForAllTokens("MetaShoesGenesis", "DXG") {
     using SafeMath for uint256;
 
     // @notice event emitted upon construction of this contract, used to bootstrap external indexers
-    event DigitalaxGenesisNFTContractDeployed();
+    event MetaShoesGenesisNFTContractDeployed();
 
     // @notice event emitted when a contributor buys a Genesis NFT
     event GenesisPurchased(
@@ -42,13 +42,13 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
         address indexed admin
     );
 
-    // @notice event emitted when DigitalaxAccessControls is updated
+    // @notice event emitted when MetaShoesAccessControls is updated
     event AccessControlsUpdated(
         address indexed newAdress
     );
 
     // @notice responsible for enforcing admin access
-    DigitalaxAccessControls public accessControls;
+    MetaShoesAccessControls public accessControls;
 
     // @notice all funds will be sent to this address pon purchase of a Genesis NFT
     address payable public fundsMultisig;
@@ -80,7 +80,7 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
     uint256 public totalAdminMints;
 
     constructor(
-        DigitalaxAccessControls _accessControls,
+        MetaShoesAccessControls _accessControls,
         address payable _fundsMultisig,
         uint256 _genesisStartTimestamp,
         uint256 _genesisEndTimestamp,
@@ -91,7 +91,7 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
         genesisStartTimestamp = _genesisStartTimestamp;
         genesisEndTimestamp = _genesisEndTimestamp;
         tokenURI_ = _tokenURI;
-        emit DigitalaxGenesisNFTContractDeployed();
+        emit MetaShoesGenesisNFTContractDeployed();
     }
 
     /**
@@ -116,30 +116,30 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
      * @dev All funds move to fundsMultisig
      */
     function buy() public payable {
-        require(contribution[_msgSender()] == 0, "DigitalaxGenesisNFT.buy: You already own a genesis NFT");
+        require(contribution[_msgSender()] == 0, "MetaShoesGenesisNFT.buy: You already own a genesis NFT");
         require(
             _getNow() >= genesisStartTimestamp && _getNow() <= genesisEndTimestamp,
-            "DigitalaxGenesisNFT.buy: No genesis are available outside of the genesis window"
+            "MetaShoesGenesisNFT.buy: No genesis are available outside of the genesis window"
         );
 
         uint256 _contributionAmount = msg.value;
         require(
             _contributionAmount >= minimumContributionAmount,
-            "DigitalaxGenesisNFT.buy: Contribution does not meet minimum requirement"
+            "MetaShoesGenesisNFT.buy: Contribution does not meet minimum requirement"
         );
 
         require(
             _contributionAmount <= maximumContributionAmount,
-            "DigitalaxGenesisNFT.buy: You cannot exceed the maximum contribution amount"
+            "MetaShoesGenesisNFT.buy: You cannot exceed the maximum contribution amount"
         );
 
-        require(remainingGenesisTokens() > 0, "DigitalaxGenesisNFT.buy: Total number of genesis token holders reached");
+        require(remainingGenesisTokens() > 0, "MetaShoesGenesisNFT.buy: Total number of genesis token holders reached");
 
         contribution[_msgSender()] = _contributionAmount;
         totalContributions = totalContributions.add(_contributionAmount);
 
         (bool fundsTransferSuccess,) = fundsMultisig.call{value : _contributionAmount}("");
-        require(fundsTransferSuccess, "DigitalaxGenesisNFT.buy: Unable to send contribution to funds multisig");
+        require(fundsTransferSuccess, "MetaShoesGenesisNFT.buy: Unable to send contribution to funds multisig");
 
         uint256 tokenId = totalSupply().add(1);
         _safeMint(_msgSender(), tokenId);
@@ -157,12 +157,12 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
     function increaseContribution() public payable {
         require(
             _getNow() >= genesisStartTimestamp && _getNow() <= genesisEndTimestamp,
-            "DigitalaxGenesisNFT.increaseContribution: No increases are possible outside of the genesis window"
+            "MetaShoesGenesisNFT.increaseContribution: No increases are possible outside of the genesis window"
         );
 
         require(
             contribution[_msgSender()] > 0,
-            "DigitalaxGenesisNFT.increaseContribution: You do not own a genesis NFT"
+            "MetaShoesGenesisNFT.increaseContribution: You do not own a genesis NFT"
         );
 
         uint256 _amountToIncrease = msg.value;
@@ -170,7 +170,7 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
 
         require(
             contribution[_msgSender()] <= maximumContributionAmount,
-            "DigitalaxGenesisNFT.increaseContribution: You cannot exceed the maximum contribution amount"
+            "MetaShoesGenesisNFT.increaseContribution: You cannot exceed the maximum contribution amount"
         );
 
         totalContributions = totalContributions.add(_amountToIncrease);
@@ -178,7 +178,7 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
         (bool fundsTransferSuccess,) = fundsMultisig.call{value : _amountToIncrease}("");
         require(
             fundsTransferSuccess,
-            "DigitalaxGenesisNFT.increaseContribution: Unable to send contribution to funds multisig"
+            "MetaShoesGenesisNFT.increaseContribution: Unable to send contribution to funds multisig"
         );
 
         emit ContributionIncreased(_msgSender(), _amountToIncrease);
@@ -194,10 +194,10 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
     function adminBuy(address _beneficiary) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxGenesisNFT.adminBuy: Sender must be admin"
+            "MetaShoesGenesisNFT.adminBuy: Sender must be admin"
         );
-        require(_beneficiary != address(0), "DigitalaxGenesisNFT.adminBuy: Beneficiary cannot be ZERO");
-        require(balanceOf(_beneficiary) == 0, "DigitalaxGenesisNFT.adminBuy: Beneficiary already owns a genesis NFT");
+        require(_beneficiary != address(0), "MetaShoesGenesisNFT.adminBuy: Beneficiary cannot be ZERO");
+        require(balanceOf(_beneficiary) == 0, "MetaShoesGenesisNFT.adminBuy: Beneficiary already owns a genesis NFT");
 
         uint256 tokenId = totalSupply().add(1);
         _safeMint(_beneficiary, tokenId);
@@ -214,13 +214,13 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
     function updateGenesisEnd(uint256 _end) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxGenesisNFT.updateGenesisEnd: Sender must be admin"
+            "MetaShoesGenesisNFT.updateGenesisEnd: Sender must be admin"
         );
         // If already passed, dont allow opening again
-        require(genesisEndTimestamp > _getNow(), "DigitalaxGenesisNFT.updateGenesisEnd: End time already passed");
+        require(genesisEndTimestamp > _getNow(), "MetaShoesGenesisNFT.updateGenesisEnd: End time already passed");
 
         // Only allow setting this once
-        require(!genesisEndTimestampLocked, "DigitalaxGenesisNFT.updateGenesisEnd: End time locked");
+        require(!genesisEndTimestampLocked, "MetaShoesGenesisNFT.updateGenesisEnd: End time locked");
 
         genesisEndTimestamp = _end;
 
@@ -233,12 +233,12 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
     /**
      * @dev Allows a whitelisted admin to update the start date of the genesis
      */
-    function updateAccessControls(DigitalaxAccessControls _accessControls) external {
+    function updateAccessControls(MetaShoesAccessControls _accessControls) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxGenesisNFT.updateAccessControls: Sender must be admin"
+            "MetaShoesGenesisNFT.updateAccessControls: Sender must be admin"
         );
-        require(address(_accessControls) != address(0), "DigitalaxGenesisNFT.updateAccessControls: Zero Address");
+        require(address(_accessControls) != address(0), "MetaShoesGenesisNFT.updateAccessControls: Zero Address");
         accessControls = _accessControls;
 
         emit AccessControlsUpdated(address(_accessControls));
@@ -266,7 +266,7 @@ contract DigitalaxGenesisNFT is ERC721WithSameTokenURIForAllTokens("DigitalaxGen
      */
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override {
         if (from != address(0) && _getNow() <= genesisEndTimestamp) {
-            revert("DigitalaxGenesisNFT._beforeTokenTransfer: Transfers are currently locked at this time");
+            revert("MetaShoesGenesisNFT._beforeTokenTransfer: Transfers are currently locked at this time");
         }
     }
 }

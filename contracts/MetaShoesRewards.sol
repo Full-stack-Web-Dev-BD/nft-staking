@@ -3,15 +3,15 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./DigitalaxAccessControls.sol";
-import "./DigitalaxGenesisNFT.sol";
+import "./MetaShoesAccessControls.sol";
+import "./MetaShoesGenesisNFT.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IUniswapV2Pair.sol";
 import "./Utils/UniswapV2Library.sol";
 
 /**
- * @title Digitalax Rewards
+ * @title MetaShoes Rewards
  * @dev Calculates the rewards for staking on the Digitialax platform
  * @author Adrian Guerrera (deepyr)
  */
@@ -26,13 +26,13 @@ interface MONA is IERC20 {
     function mint(address tokenOwner, uint tokens) external returns (bool);
 }
 
-contract DigitalaxRewards {
+contract MetaShoesRewards {
     using SafeMath for uint256;
 
     /* ========== Variables ========== */
 
     MONA public rewardsToken;
-    DigitalaxAccessControls public accessControls;
+    MetaShoesAccessControls public accessControls;
     DigialaxStaking public genesisStaking;
     DigialaxStaking public parentStaking;
     DigialaxStaking public lpStaking;
@@ -73,7 +73,7 @@ contract DigitalaxRewards {
     /* ========== Admin Functions ========== */
     constructor(
         MONA _rewardsToken,
-        DigitalaxAccessControls _accessControls,
+        MetaShoesAccessControls _accessControls,
         DigialaxStaking _genesisStaking,
         DigialaxStaking _parentStaking,
         DigialaxStaking _lpStaking,
@@ -107,7 +107,7 @@ contract DigitalaxRewards {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxRewards.setStartTime: Sender must be admin"
+            "MetaShoesRewards.setStartTime: Sender must be admin"
         );
         startTime = _startTime;
         lastRewardTime = _lastRewardTime;
@@ -125,7 +125,7 @@ contract DigitalaxRewards {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxRewards.setStartTime: Sender must be admin"
+            "MetaShoesRewards.setStartTime: Sender must be admin"
         );
         Weights storage weights = weeklyWeightPoints[week];
         weights.genesisWtPoints = gW;
@@ -141,7 +141,7 @@ contract DigitalaxRewards {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxRewards.setGenesisStaking: Sender must be admin"
+            "MetaShoesRewards.setGenesisStaking: Sender must be admin"
         );
         require(_addr != address(parentStaking));
         require(_addr != address(lpStaking));
@@ -155,7 +155,7 @@ contract DigitalaxRewards {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxRewards.setParentStaking: Sender must be admin"
+            "MetaShoesRewards.setParentStaking: Sender must be admin"
         );
         require(_addr != address(genesisStaking));
         require(_addr != address(lpStaking));
@@ -169,7 +169,7 @@ contract DigitalaxRewards {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxRewards.setLPStaking: Sender must be admin"
+            "MetaShoesRewards.setLPStaking: Sender must be admin"
         );
         require(_addr != address(parentStaking));
         require(_addr != address(genesisStaking));
@@ -186,7 +186,7 @@ contract DigitalaxRewards {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxRewards.setRewards: Sender must be admin"
+            "MetaShoesRewards.setRewards: Sender must be admin"
         );
         uint256 numRewards = rewardWeeks.length;
         for (uint256 i = 0; i < numRewards; i++) {
@@ -208,7 +208,7 @@ contract DigitalaxRewards {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxRewards.setRewards: Sender must be admin"
+            "MetaShoesRewards.setRewards: Sender must be admin"
         );
         uint256 numRewards = rewardWeeks.length;
         for (uint256 i = 0; i < numRewards; i++) {
@@ -602,7 +602,7 @@ contract DigitalaxRewards {
         // Cannot recover the staking token or the rewards token
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxRewards.recoverERC20: Sender must be admin"
+            "MetaShoesRewards.recoverERC20: Sender must be admin"
         );
         require(
             tokenAddress != address(rewardsToken),

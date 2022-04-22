@@ -4,7 +4,7 @@ pragma solidity ^0.6.12;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/GSN/Context.sol";
-import "./DigitalaxAccessControls.sol";
+import "./MetaShoesAccessControls.sol";
 
 /**
  * @notice Mona Governance Token = ERC20 + mint + burn.
@@ -27,7 +27,7 @@ contract MONA is Context, IERC20  {
     uint public cap;
     bool public freezeCap;
 
-    DigitalaxAccessControls public accessControls;
+    MetaShoesAccessControls public accessControls;
 
     event CapUpdated(uint256 cap, bool freezeCap);
 
@@ -35,7 +35,7 @@ contract MONA is Context, IERC20  {
         string memory symbol_,
         string memory name_,
         uint8 decimals_,
-        DigitalaxAccessControls accessControls_,
+        MetaShoesAccessControls accessControls_,
         address tokenOwner,
         uint256 initialSupply
     ) 

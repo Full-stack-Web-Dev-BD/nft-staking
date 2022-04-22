@@ -3,15 +3,15 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../garment/DigitalaxMaterials.sol";
+import "../garment/MetaShoesMaterials.sol";
 
 contract MockVault {
-    DigitalaxMaterials public materials;
+    MetaShoesMaterials public materials;
     IERC20 public supportedERC20Asset;
     uint256 public supportedERC20AssetSyntheticStrandId;
 
     // using init rather than constructor as we need to know the contract address in the test to give it smart contract role
-    function init(DigitalaxMaterials _materials, IERC20 _supportedERC20Asset, string memory _supportedAssetSyntheticStrandUri) external {
+    function init(MetaShoesMaterials _materials, IERC20 _supportedERC20Asset, string memory _supportedAssetSyntheticStrandUri) external {
         materials = _materials;
 
         // If this contract supported many assets, this would be in a 'whitelist' method of sorts (maybe without the createChild and instead with a strandId)

@@ -6,18 +6,18 @@ import "@openzeppelin/contracts/GSN/Context.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./DigitalaxAccessControls.sol";
-import "./garment/IDigitalaxGarmentNFT.sol";
+import "./MetaShoesAccessControls.sol";
+import "./garment/IMetaShoesGarmentNFT.sol";
 
 /**
- * @notice Primary sale auction contract for Digitalax NFTs
+ * @notice Primary sale auction contract for MetaShoes NFTs
  */
-contract DigitalaxAuction is Context, ReentrancyGuard {
+contract MetaShoesAuction is Context, ReentrancyGuard {
     using SafeMath for uint256;
     using Address for address payable;
 
     /// @notice Event emitted only on construction. To be used by indexers
-    event DigitalaxAuctionContractDeployed();
+    event MetaShoesAuctionContractDeployed();
 
     event PauseToggled(
         bool isPaused
@@ -111,10 +111,10 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     mapping(uint256 => HighestBid) public highestBids;
 
     /// @notice Garment ERC721 NFT - the only NFT that can be auctioned in this contract
-    IDigitalaxGarmentNFT public garmentNft;
+    IMetaShoesGarmentNFT public garmentNft;
 
     // @notice responsible for enforcing admin access
-    DigitalaxAccessControls public accessControls;
+    MetaShoesAccessControls public accessControls;
 
     /// @notice globally and across all auctions, the amount by which a bid has to increase
     uint256 public minBidIncrement = 0.1 ether;
@@ -137,19 +137,19 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     }
 
     constructor(
-        DigitalaxAccessControls _accessControls,
-        IDigitalaxGarmentNFT _garmentNft,
+        MetaShoesAccessControls _accessControls,
+        IMetaShoesGarmentNFT _garmentNft,
         address payable _platformFeeRecipient
     ) public {
-        require(address(_accessControls) != address(0), "DigitalaxAuction: Invalid Access Controls");
-        require(address(_garmentNft) != address(0), "DigitalaxAuction: Invalid NFT");
-        require(_platformFeeRecipient != address(0), "DigitalaxAuction: Invalid Platform Fee Recipient");
+        require(address(_accessControls) != address(0), "MetaShoesAuction: Invalid Access Controls");
+        require(address(_garmentNft) != address(0), "MetaShoesAuction: Invalid NFT");
+        require(_platformFeeRecipient != address(0), "MetaShoesAuction: Invalid Platform Fee Recipient");
 
         accessControls = _accessControls;
         garmentNft = _garmentNft;
         platformFeeRecipient = _platformFeeRecipient;
 
-        emit DigitalaxAuctionContractDeployed();
+        emit MetaShoesAuctionContractDeployed();
     }
 
     /**
@@ -171,13 +171,13 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
         // Ensure caller has privileges
         require(
             accessControls.hasMinterRole(_msgSender()),
-            "DigitalaxAuction.createAuction: Sender must have the minter role"
+            "MetaShoesAuction.createAuction: Sender must have the minter role"
         );
 
         // Check owner of the token is the creator and approved
         require(
             garmentNft.ownerOf(_garmentTokenId) == _msgSender() && garmentNft.isApproved(_garmentTokenId, address(this)),
-            "DigitalaxAuction.createAuction: Not owner and or contract not approved"
+            "MetaShoesAuction.createAuction: Not owner and or contract not approved"
         );
 
         _createAuction(
@@ -207,12 +207,12 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
         // Ensure caller has privileges
         require(
             accessControls.hasAdminRole(_msgSender()) || accessControls.hasSmartContractRole(_msgSender()),
-            "DigitalaxAuction.createAuctionOnBehalfOfOwner: Sender must have admin or smart contract role"
+            "MetaShoesAuction.createAuctionOnBehalfOfOwner: Sender must have admin or smart contract role"
         );
 
         require(
             garmentNft.isApproved(_garmentTokenId, address(this)),
-            "DigitalaxAuction.createAuctionOnBehalfOfOwner: Cannot create an auction if you do not have approval"
+            "MetaShoesAuction.createAuctionOnBehalfOfOwner: Cannot create an auction if you do not have approval"
         );
 
         _createAuction(
@@ -230,7 +230,7 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
      @param _garmentTokenId Token ID of the garment being auctioned
      */
     function placeBid(uint256 _garmentTokenId) external payable nonReentrant whenNotPaused {
-        require(_msgSender().isContract() == false, "DigitalaxAuction.placeBid: No contracts permitted");
+        require(_msgSender().isContract() == false, "MetaShoesAuction.placeBid: No contracts permitted");
 
         // Check the auction to see if this is a valid bid
         Auction storage auction = auctions[_garmentTokenId];
@@ -238,7 +238,7 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
         // Ensure auction is in flight
         require(
             _getNow() >= auction.startTime && _getNow() <= auction.endTime,
-            "DigitalaxAuction.placeBid: Bidding outside of the auction window"
+            "MetaShoesAuction.placeBid: Bidding outside of the auction window"
         );
 
         uint256 bidAmount = msg.value;
@@ -246,7 +246,7 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
         // Ensure bid adheres to outbid increment and threshold
         HighestBid storage highestBid = highestBids[_garmentTokenId];
         uint256 minBidRequired = highestBid.bid.add(minBidIncrement);
-        require(bidAmount >= minBidRequired, "DigitalaxAuction.placeBid: Failed to outbid highest bidder");
+        require(bidAmount >= minBidRequired, "MetaShoesAuction.placeBid: Failed to outbid highest bidder");
 
         // Refund existing top bidder if found
         if (highestBid.bidder != address(0)) {
@@ -270,15 +270,15 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
         HighestBid storage highestBid = highestBids[_garmentTokenId];
 
         // Ensure highest bidder is the caller
-        require(highestBid.bidder == _msgSender(), "DigitalaxAuction.withdrawBid: You are not the highest bidder");
+        require(highestBid.bidder == _msgSender(), "MetaShoesAuction.withdrawBid: You are not the highest bidder");
 
         // Check withdrawal after delay time
         require(
             _getNow() >= highestBid.lastBidTime.add(bidWithdrawalLockTime),
-            "DigitalaxAuction.withdrawBid: Cannot withdraw until lock time has passed"
+            "MetaShoesAuction.withdrawBid: Cannot withdraw until lock time has passed"
         );
 
-        require(_getNow() < auctions[_garmentTokenId].endTime, "DigitalaxAuction.withdrawBid: Past auction end");
+        require(_getNow() < auctions[_garmentTokenId].endTime, "MetaShoesAuction.withdrawBid: Past auction end");
 
         uint256 previousBid = highestBid.bid;
 
@@ -305,23 +305,23 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     function resultAuction(uint256 _garmentTokenId) external nonReentrant {
         require(
             accessControls.hasAdminRole(_msgSender()) || accessControls.hasSmartContractRole(_msgSender()),
-            "DigitalaxAuction.resultAuction: Sender must be admin or smart contract"
+            "MetaShoesAuction.resultAuction: Sender must be admin or smart contract"
         );
 
         // Check the auction to see if it can be resulted
         Auction storage auction = auctions[_garmentTokenId];
 
         // Check the auction real
-        require(auction.endTime > 0, "DigitalaxAuction.resultAuction: Auction does not exist");
+        require(auction.endTime > 0, "MetaShoesAuction.resultAuction: Auction does not exist");
 
         // Check the auction has ended
-        require(_getNow() > auction.endTime, "DigitalaxAuction.resultAuction: The auction has not ended");
+        require(_getNow() > auction.endTime, "MetaShoesAuction.resultAuction: The auction has not ended");
 
         // Ensure auction not already resulted
-        require(!auction.resulted, "DigitalaxAuction.resultAuction: auction already resulted");
+        require(!auction.resulted, "MetaShoesAuction.resultAuction: auction already resulted");
 
         // Ensure this contract is approved to move the token
-        require(garmentNft.isApproved(_garmentTokenId, address(this)), "DigitalaxAuction.resultAuction: auction not approved");
+        require(garmentNft.isApproved(_garmentTokenId, address(this)), "MetaShoesAuction.resultAuction: auction not approved");
 
         // Get info on who the highest bidder is
         HighestBid storage highestBid = highestBids[_garmentTokenId];
@@ -329,10 +329,10 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
         uint256 winningBid = highestBid.bid;
 
         // Ensure auction not already resulted
-        require(winningBid >= auction.reservePrice, "DigitalaxAuction.resultAuction: reserve not reached");
+        require(winningBid >= auction.reservePrice, "MetaShoesAuction.resultAuction: reserve not reached");
 
         // Ensure there is a winner
-        require(winner != address(0), "DigitalaxAuction.resultAuction: no open bids");
+        require(winner != address(0), "MetaShoesAuction.resultAuction: no open bids");
 
         // Result the auction
         auctions[_garmentTokenId].resulted = true;
@@ -352,15 +352,15 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
 
             // Send platform fee
             (bool platformTransferSuccess,) = platformFeeRecipient.call{value : platformFeeAboveReserve}("");
-            require(platformTransferSuccess, "DigitalaxAuction.resultAuction: Failed to send platform fee");
+            require(platformTransferSuccess, "MetaShoesAuction.resultAuction: Failed to send platform fee");
 
             // Send remaining to designer
             (bool designerTransferSuccess,) = garmentNft.garmentDesigners(_garmentTokenId).call{value : winningBid.sub(platformFeeAboveReserve)}("");
-            require(designerTransferSuccess, "DigitalaxAuction.resultAuction: Failed to send the designer their royalties");
+            require(designerTransferSuccess, "MetaShoesAuction.resultAuction: Failed to send the designer their royalties");
         } else {
             // Send all to the designer
             (bool designerTransferSuccess,) = garmentNft.garmentDesigners(_garmentTokenId).call{value : winningBid}("");
-            require(designerTransferSuccess, "DigitalaxAuction.resultAuction: Failed to send the designer their royalties");
+            require(designerTransferSuccess, "MetaShoesAuction.resultAuction: Failed to send the designer their royalties");
         }
 
         // Transfer the token to the winner
@@ -378,17 +378,17 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
         // Admin only resulting function
         require(
             accessControls.hasAdminRole(_msgSender()) || accessControls.hasSmartContractRole(_msgSender()),
-            "DigitalaxAuction.cancelAuction: Sender must be admin or smart contract"
+            "MetaShoesAuction.cancelAuction: Sender must be admin or smart contract"
         );
 
         // Check valid and not resulted
         Auction storage auction = auctions[_garmentTokenId];
 
         // Check auction is real
-        require(auction.endTime > 0, "DigitalaxAuction.cancelAuction: Auction does not exist");
+        require(auction.endTime > 0, "MetaShoesAuction.cancelAuction: Auction does not exist");
 
         // Check auction not already resulted
-        require(!auction.resulted, "DigitalaxAuction.cancelAuction: auction already resulted");
+        require(!auction.resulted, "MetaShoesAuction.cancelAuction: auction already resulted");
 
         // refund existing top bidder if found
         HighestBid storage highestBid = highestBids[_garmentTokenId];
@@ -410,7 +410,7 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
      @dev Only admin
      */
     function toggleIsPaused() external {
-        require(accessControls.hasAdminRole(_msgSender()), "DigitalaxAuction.toggleIsPaused: Sender must be admin");
+        require(accessControls.hasAdminRole(_msgSender()), "MetaShoesAuction.toggleIsPaused: Sender must be admin");
         isPaused = !isPaused;
         emit PauseToggled(isPaused);
     }
@@ -421,7 +421,7 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
      @param _minBidIncrement New bid step in WEI
      */
     function updateMinBidIncrement(uint256 _minBidIncrement) external {
-        require(accessControls.hasAdminRole(_msgSender()), "DigitalaxAuction.updateMinBidIncrement: Sender must be admin");
+        require(accessControls.hasAdminRole(_msgSender()), "MetaShoesAuction.updateMinBidIncrement: Sender must be admin");
         minBidIncrement = _minBidIncrement;
         emit UpdateMinBidIncrement(_minBidIncrement);
     }
@@ -432,7 +432,7 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
      @param _bidWithdrawalLockTime New bid withdrawal lock time
      */
     function updateBidWithdrawalLockTime(uint256 _bidWithdrawalLockTime) external {
-        require(accessControls.hasAdminRole(_msgSender()), "DigitalaxAuction.updateBidWithdrawalLockTime: Sender must be admin");
+        require(accessControls.hasAdminRole(_msgSender()), "MetaShoesAuction.updateBidWithdrawalLockTime: Sender must be admin");
         bidWithdrawalLockTime = _bidWithdrawalLockTime;
         emit UpdateBidWithdrawalLockTime(_bidWithdrawalLockTime);
     }
@@ -447,12 +447,12 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     function updateAuctionReservePrice(uint256 _garmentTokenId, uint256 _reservePrice) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxAuction.updateAuctionReservePrice: Sender must be admin"
+            "MetaShoesAuction.updateAuctionReservePrice: Sender must be admin"
         );
 
         require(
             auctions[_garmentTokenId].endTime > 0,
-            "DigitalaxAuction.updateAuctionReservePrice: No Auction exists"
+            "MetaShoesAuction.updateAuctionReservePrice: No Auction exists"
         );
 
         auctions[_garmentTokenId].reservePrice = _reservePrice;
@@ -469,12 +469,12 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     function updateAuctionStartTime(uint256 _garmentTokenId, uint256 _startTime) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxAuction.updateAuctionStartTime: Sender must be admin"
+            "MetaShoesAuction.updateAuctionStartTime: Sender must be admin"
         );
 
         require(
             auctions[_garmentTokenId].endTime > 0,
-            "DigitalaxAuction.updateAuctionStartTime: No Auction exists"
+            "MetaShoesAuction.updateAuctionStartTime: No Auction exists"
         );
 
         auctions[_garmentTokenId].startTime = _startTime;
@@ -491,19 +491,19 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     function updateAuctionEndTime(uint256 _garmentTokenId, uint256 _endTimestamp) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxAuction.updateAuctionEndTime: Sender must be admin"
+            "MetaShoesAuction.updateAuctionEndTime: Sender must be admin"
         );
         require(
             auctions[_garmentTokenId].endTime > 0,
-            "DigitalaxAuction.updateAuctionEndTime: No Auction exists"
+            "MetaShoesAuction.updateAuctionEndTime: No Auction exists"
         );
         require(
             auctions[_garmentTokenId].startTime < _endTimestamp,
-            "DigitalaxAuction.updateAuctionEndTime: End time must be greater than start"
+            "MetaShoesAuction.updateAuctionEndTime: End time must be greater than start"
         );
         require(
             _endTimestamp > _getNow(),
-            "DigitalaxAuction.updateAuctionEndTime: End time passed. Nobody can bid"
+            "MetaShoesAuction.updateAuctionEndTime: End time passed. Nobody can bid"
         );
 
         auctions[_garmentTokenId].endTime = _endTimestamp;
@@ -515,13 +515,13 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
      @dev Only admin
      @param _accessControls Address of the new access controls contract (Cannot be zero address)
      */
-    function updateAccessControls(DigitalaxAccessControls _accessControls) external {
+    function updateAccessControls(MetaShoesAccessControls _accessControls) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxAuction.updateAccessControls: Sender must be admin"
+            "MetaShoesAuction.updateAccessControls: Sender must be admin"
         );
 
-        require(address(_accessControls) != address(0), "DigitalaxAuction.updateAccessControls: Zero Address");
+        require(address(_accessControls) != address(0), "MetaShoesAuction.updateAccessControls: Zero Address");
 
         accessControls = _accessControls;
         emit UpdateAccessControls(address(_accessControls));
@@ -535,7 +535,7 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     function updatePlatformFee(uint256 _platformFee) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxAuction.updatePlatformFee: Sender must be admin"
+            "MetaShoesAuction.updatePlatformFee: Sender must be admin"
         );
 
         platformFee = _platformFee;
@@ -550,10 +550,10 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     function updatePlatformFeeRecipient(address payable _platformFeeRecipient) external {
         require(
             accessControls.hasAdminRole(_msgSender()),
-            "DigitalaxAuction.updatePlatformFeeRecipient: Sender must be admin"
+            "MetaShoesAuction.updatePlatformFeeRecipient: Sender must be admin"
         );
 
-        require(_platformFeeRecipient != address(0), "DigitalaxAuction.updatePlatformFeeRecipient: Zero address");
+        require(_platformFeeRecipient != address(0), "MetaShoesAuction.updatePlatformFeeRecipient: Zero address");
 
         platformFeeRecipient = _platformFeeRecipient;
         emit UpdatePlatformFeeRecipient(_platformFeeRecipient);
@@ -619,11 +619,11 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
         uint256 _endTimestamp
     ) private {
         // Ensure a token cannot be re-listed if previously successfully sold
-        require(auctions[_garmentTokenId].endTime == 0, "DigitalaxAuction.createAuction: Cannot relist");
+        require(auctions[_garmentTokenId].endTime == 0, "MetaShoesAuction.createAuction: Cannot relist");
 
         // Check end time not before start time and that end is in the future
-        require(_endTimestamp > _startTimestamp, "DigitalaxAuction.createAuction: End time must be greater than start");
-        require(_endTimestamp > _getNow(), "DigitalaxAuction.createAuction: End time passed. Nobody can bid.");
+        require(_endTimestamp > _startTimestamp, "MetaShoesAuction.createAuction: End time must be greater than start");
+        require(_endTimestamp > _getNow(), "MetaShoesAuction.createAuction: End time passed. Nobody can bid.");
 
         // Setup the auction
         auctions[_garmentTokenId] = Auction({
@@ -644,7 +644,7 @@ contract DigitalaxAuction is Context, ReentrancyGuard {
     function _refundHighestBidder(address payable _currentHighestBidder, uint256 _currentHighestBid) private {
         // refund previous best (if bid exists)
         (bool successRefund,) = _currentHighestBidder.call{value : _currentHighestBid}("");
-        require(successRefund, "DigitalaxAuction._refundHighestBidder: failed to refund previous bidder");
+        require(successRefund, "MetaShoesAuction._refundHighestBidder: failed to refund previous bidder");
         emit BidRefunded(_currentHighestBidder, _currentHighestBid);
     }
 }

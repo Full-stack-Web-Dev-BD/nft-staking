@@ -3,19 +3,19 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "../DigitalaxAccessControls.sol";
-import "../DigitalaxGenesisNFT.sol";
+import "../MetaShoesAccessControls.sol";
+import "../MetaShoesGenesisNFT.sol";
 import "../interfaces/IERC20.sol";
 
 /**
- * @title Digitalax Staking
+ * @title MetaShoes Staking
  * @dev Stake NFTs, earn tokens on the Digitialax platform
  * @author Adrian Guerrera (deepyr)
  */
 
 
 /// @dev an interface to interact with the Genesis MONA NFT that will 
-interface IDigitalaxGenesisNFT {
+interface IMetaShoesGenesisNFT {
     function contribution(address user) external view returns (uint256);
     function totalContributions() external view returns (uint256);
     function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
@@ -24,7 +24,7 @@ interface IDigitalaxGenesisNFT {
 }
 
 /// @dev an interface to interact with the Genesis MONA NFT that will 
-interface IDigitalaxRewards {
+interface IMetaShoesRewards {
     function updateRewards() external returns (bool);
     function genesisRewards(uint256 _from, uint256 _to) external view returns(uint256);
     function parentRewards(uint256 _from, uint256 _to) external view returns(uint256);
@@ -39,9 +39,9 @@ contract MockStaking {
 
     /// @notice
     IERC20 public rewardsToken;
-    IDigitalaxGenesisNFT public genesisNFT;
-    DigitalaxAccessControls public accessControls;
-    IDigitalaxRewards public rewardsContract;
+    IMetaShoesGenesisNFT public genesisNFT;
+    MetaShoesAccessControls public accessControls;
+    IMetaShoesRewards public rewardsContract;
 
      // @notice all funds will be sent to this address pon purchase of a Genesis NFT
     address payable public fundsMultisig;
@@ -115,8 +115,8 @@ contract MockStaking {
     function initGenesisStaking(
         address payable _fundsMultisig,
         IERC20 _rewardsToken,
-        IDigitalaxGenesisNFT _genesisNFT,
-        DigitalaxAccessControls _accessControls
+        IMetaShoesGenesisNFT _genesisNFT,
+        MetaShoesAccessControls _accessControls
     )
         public
     {
@@ -133,7 +133,7 @@ contract MockStaking {
         public
     {
         require(_addr != address(0));
-        rewardsContract = IDigitalaxRewards(_addr);
+        rewardsContract = IMetaShoesRewards(_addr);
     }
 
     // AG add setters for reward tokens 

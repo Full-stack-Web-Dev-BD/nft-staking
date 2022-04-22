@@ -2,20 +2,20 @@
 
 pragma solidity 0.6.12;
 
-import "../DigitalaxGenesisNFT.sol";
+import "../MetaShoesGenesisNFT.sol";
 
-contract DigitalaxGenesisNFTMock is DigitalaxGenesisNFT {
+contract MetaShoesGenesisNFTMock is MetaShoesGenesisNFT {
     uint256 public nowOverride;
     uint256 public maxGenesisContributionTokensOverride;
 
     constructor(
-        DigitalaxAccessControls _accessControls,
+        MetaShoesAccessControls _accessControls,
         address payable _fundsMultisig,
         uint256 _genesisStart,
         uint256 _genesisEnd,
         string memory _tokenURI
     )
-    DigitalaxGenesisNFT(_accessControls, _fundsMultisig, _genesisStart, _genesisEnd, _tokenURI)
+    MetaShoesGenesisNFT(_accessControls, _fundsMultisig, _genesisStart, _genesisEnd, _tokenURI)
     public {}
 
     function addContribution(uint256 _contributionAmount) external {

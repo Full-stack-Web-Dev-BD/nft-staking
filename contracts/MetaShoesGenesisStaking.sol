@@ -3,27 +3,27 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./DigitalaxAccessControls.sol";
-import "./DigitalaxGenesisNFT.sol";
+import "./MetaShoesAccessControls.sol";
+import "./MetaShoesGenesisNFT.sol";
 import "./interfaces/IERC20.sol";
-import "./interfaces/IDigitalaxRewards.sol";
-import "./interfaces/IDigitalaxGenesisNFT.sol";
+import "./interfaces/IMetaShoesRewards.sol";
+import "./interfaces/IMetaShoesGenesisNFT.sol";
 
 /**
- * @title Digitalax Staking
+ * @title MetaShoes Staking
  * @dev Stake NFTs, earn tokens on the Digitialax platform
  * @author Adrian Guerrera (deepyr)
  */
 
 
-contract DigitalaxGenesisStaking {
+contract MetaShoesGenesisStaking {
     using SafeMath for uint256;
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
     IERC20 public rewardsToken;
-    IDigitalaxGenesisNFT public genesisNFT;
-    DigitalaxAccessControls public accessControls;
-    IDigitalaxRewards public rewardsContract;
+    IMetaShoesGenesisNFT public genesisNFT;
+    MetaShoesAccessControls public accessControls;
+    IMetaShoesRewards public rewardsContract;
 
     /// @notice all funds will be sent to this address pon purchase of a Genesis NFT
     address payable public fundsMultisig;
@@ -99,8 +99,8 @@ contract DigitalaxGenesisStaking {
     function initGenesisStaking(
         address payable _fundsMultisig,
         IERC20 _rewardsToken,
-        IDigitalaxGenesisNFT _genesisNFT,
-        DigitalaxAccessControls _accessControls
+        IMetaShoesGenesisNFT _genesisNFT,
+        MetaShoesAccessControls _accessControls
     )
         public
     {
@@ -120,10 +120,10 @@ contract DigitalaxGenesisStaking {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxGenesisStaking.setRewardsContract: Sender must be admin"
+            "MetaShoesGenesisStaking.setRewardsContract: Sender must be admin"
         );
         require(_addr != address(0));
-        rewardsContract = IDigitalaxRewards(_addr);
+        rewardsContract = IMetaShoesRewards(_addr);
     }
 
     function setTokensClaimable(
@@ -133,7 +133,7 @@ contract DigitalaxGenesisStaking {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxGenesisStaking.setTokensClaimable: Sender must be admin"
+            "MetaShoesGenesisStaking.setTokensClaimable: Sender must be admin"
         );
         tokensClaimable = _enabled;
         emit ClaimableStatusUpdated(_enabled);
@@ -233,7 +233,7 @@ contract DigitalaxGenesisStaking {
     {
         require(
             tokenOwner[_tokenId] == msg.sender,
-            "DigitalaxGenesisStaking._unstake: Sender must have staked tokenID"
+            "MetaShoesGenesisStaking._unstake: Sender must have staked tokenID"
         );
         claimReward(msg.sender);
         _unstake(msg.sender, _tokenId);
@@ -300,7 +300,7 @@ contract DigitalaxGenesisStaking {
     function emergencyUnstake(uint256 _tokenId) external {
         require(
             tokenOwner[_tokenId] == msg.sender,
-            "DigitalaxGenesisStaking._unstake: Sender must have staked tokenID"
+            "MetaShoesGenesisStaking._unstake: Sender must have staked tokenID"
         );
         _unstake(msg.sender, _tokenId);
         emit EmergencyUnstake(msg.sender, _tokenId);
@@ -414,7 +414,7 @@ contract DigitalaxGenesisStaking {
     {
         require(
             accessControls.hasAdminRole(msg.sender),
-            "DigitalaxGenesisStaking.setContributions: Sender must be admin"
+            "MetaShoesGenesisStaking.setContributions: Sender must be admin"
         );
         for (uint256 i = 0; i < tokens.length; i++) {
             uint256 token = tokens[i];
@@ -439,7 +439,7 @@ contract DigitalaxGenesisStaking {
         updateReward(tokenOwner[_tokenId]);
         require(
             contribution[_tokenId] > 0,
-            "DigitalaxGenesisStaking.increaseContribution: genesis NFT was not contribibuted"
+            "MetaShoesGenesisStaking.increaseContribution: genesis NFT was not contribibuted"
         );
 
         uint256 _amountToIncrease = msg.value;
@@ -447,7 +447,7 @@ contract DigitalaxGenesisStaking {
 
         require(
             contribution[_tokenId] <= maximumContributionAmount,
-            "DigitalaxGenesisStaking.increaseContribution: You cannot exceed the maximum contribution amount"
+            "MetaShoesGenesisStaking.increaseContribution: You cannot exceed the maximum contribution amount"
         );
 
         totalContributions = totalContributions.add(_amountToIncrease);
@@ -455,7 +455,7 @@ contract DigitalaxGenesisStaking {
         (bool fundsTransferSuccess,) = fundsMultisig.call{value : _amountToIncrease}("");
         require(
             fundsTransferSuccess,
-            "DigitalaxGenesisStaking.increaseContribution: Unable to send contribution to funds multisig"
+            "MetaShoesGenesisStaking.increaseContribution: Unable to send contribution to funds multisig"
         );
         
         Staker storage staker = stakers[tokenOwner[_tokenId]];
